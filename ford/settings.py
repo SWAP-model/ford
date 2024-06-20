@@ -146,7 +146,8 @@ class ProjectSettings:
     extra_vartypes: list = field(default_factory=list)
     facebook: Optional[str] = None
     favicon: Path = FAVICON_PATH
-    fixed_extensions: list = field(default_factory=lambda: ["f", "for", "F", "FOR"])
+    fixed_extensions: list = field(default_factory=lambda: [
+                                   "f", "for", "F", "FOR"])
     fixed_length_limit: bool = True
     force: bool = False
     fpp_extensions: list = field(
@@ -205,6 +206,7 @@ class ProjectSettings:
     warn: bool = False
     website: Optional[str] = None
     year: str = str(date.today().year)
+    doc_home_page: Optional[str] = None
 
     def __post_init__(self):
         self.relative = self.project_url == ""
@@ -272,7 +274,8 @@ class ProjectSettings:
 
             if is_same_type(default_type, List[Path]):
                 value = getattr(self, key)
-                setattr(self, key, [normalise_path(directory, v) for v in value])
+                setattr(self, key, [normalise_path(directory, v)
+                        for v in value])
 
             if is_same_type(default_type, Path):
                 setattr(self, key, normalise_path(directory, value))
@@ -309,7 +312,8 @@ def load_markdown_settings(
     directory: PathLike, project_file: str, filename: Optional[str] = None
 ) -> Tuple[ProjectSettings, str]:
     settings, project_lines = meta_preprocessor(project_file)
-    settings = convert_types_from_metapreprocessor(ProjectSettings, settings, filename)
+    settings = convert_types_from_metapreprocessor(
+        ProjectSettings, settings, filename)
 
     # Workaround for file inclusion in metadata
     for option, value in settings.items():
@@ -320,9 +324,11 @@ def load_markdown_settings(
                 f"    {option}: {value}",
             )
             md_base_dir = settings.get("md_base_dir", directory)
-            configs = MarkdownInclude({"base_path": str(md_base_dir)}).getConfigs()
+            configs = MarkdownInclude(
+                {"base_path": str(md_base_dir)}).getConfigs()
             include_preprocessor = IncludePreprocessor(None, configs)
-            settings[option] = "\n".join(include_preprocessor.run(value.splitlines()))
+            settings[option] = "\n".join(
+                include_preprocessor.run(value.splitlines()))
 
     return ProjectSettings.from_markdown_metadata(settings), "\n".join(project_lines)
 
@@ -353,7 +359,8 @@ def convert_setting(default_type: Type, key: str, value: Any) -> Any:
         resvalue = [v for v in resvalue if v]
 
         if get_args(default_type) == (str, ExtraFileType):
-            file_types = [ExtraFileType.from_string(string) for string in resvalue]
+            file_types = [ExtraFileType.from_string(
+                string) for string in resvalue]
             return {file_type.extension: file_type for file_type in file_types}
         else:
             sep = OPTION_SEPARATORS[key]
@@ -401,7 +408,8 @@ def convert_types_from_commandarguments(
     for key, value in cargs.items():
         if value is not None:
             if key in field_types:
-                setattr(settings, key, convert_setting(field_types[key], key, value))
+                setattr(settings, key, convert_setting(
+                    field_types[key], key, value))
             else:
                 setattr(settings, key, value)
 
